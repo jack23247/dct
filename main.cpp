@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     // Our state
     ImVec4 bkgColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
     bool showImgCompressorWindow = false;
-    bool showOcvDctTestWindow = false;
+    bool showOcvDctBenchWindow = false;
     bool showMyDctTestWindow = false;
 
     // Main loop
@@ -102,15 +102,15 @@ int main(int argc, char** argv) {
 	// MainWindow
 	{
 
-	    ImGui::SetNextWindowSize(ImVec2(350, 150), ImGuiCond_Once);
+	    ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_Once);
 	    ImGui::Begin("Tool Selector");
 	    ImGui::Checkbox("Image Compressor", &showImgCompressorWindow);
-	    ImGui::Checkbox(OCV_DCT_TEST_WINDOW_TITLE, &showOcvDctTestWindow);
+	    ImGui::Checkbox(OCV_DCT_TEST_WINDOW_TITLE, &showOcvDctBenchWindow);
 	    ImGui::Checkbox("Homegrown DCT Benchmark", &showMyDctTestWindow);
 
 
-	    if(showOcvDctTestWindow) {
-		showTestWindow(&showOcvDctTestWindow);
+	    if(showOcvDctBenchWindow) {
+		OcvDctBenchWindow(&showOcvDctBenchWindow);
 	    }
 
 	    ImGui::Separator();

@@ -24,18 +24,21 @@
 #ifndef PROJ2_DCT_BENCH_COMMON_H
 #define PROJ2_DCT_BENCH_COMMON_H
 
-#include <vector>
 #include <fstream>
-#include <iosfwd>
+#include <sstream>
+#include <vector>
+
 #include "imgui.h"
 
-void printMatrix2dEng(std::vector<double> mat, int height, int width) {
+void printMatrix2dEng(std::vector<double>& mat, int height, int width) {
+    if(mat.size() < height * width)
+	return;
     if (ImGui::BeginTable("table2", width)) {
 	for (int i = 0; i < height; i++) {
-	    ImGui::TableNextRow();
+	    //ImGui::TableNextRow();
 	    for (int j = 0; j < width; j++) {
 		ImGui::TableNextColumn();
-		ImGui::Text("% .2e\t", mat.at(j + (i * j)));
+		ImGui::Text("%+.2e", mat.at(j + (width * i)));
 	    }
 	}
 	ImGui::EndTable();
@@ -43,9 +46,9 @@ void printMatrix2dEng(std::vector<double> mat, int height, int width) {
     return;
 }
 
-void printMatrix2d(std::vector<double> mat, int height, int width) {
+void printMatrix2d(std::vector<double>& mat, int height, int width) {
     if(mat.size() < height * width)
-	return; // ??? AAAAAh non era static ;)
+	return;
     if (ImGui::BeginTable("table2", width)) {
 	for (int i = 0; i < height; i++) {
 	    //ImGui::TableNextRow();
@@ -58,7 +61,6 @@ void printMatrix2d(std::vector<double> mat, int height, int width) {
     }
     return;
 }
-
 
 std::vector<double> loadMatrixFromCsv(const std::string& csvPath, uint w,
                                       uint h) {

@@ -27,57 +27,50 @@
 #include "h_time.h"
 #include "opencv2/opencv.hpp"
 
-long double performTestNs(std::vector<double> mat, int size) {
-    /* - Initialize the Timebase -------------------------------------------
-     */
+void dbgPrintCvMat(cv::Mat& mat) {
+    std::cout << "R (csv)     = " << std::endl
+              << format(mat, cv::Formatter::FMT_CSV) << std::endl
+              << std::endl;
+}
 
+long double BenchOcvDctNs(std::vector<double>& in, int size, std::vector<double>& out) {
     timespec_t ts;
+    std::vector<double> ret(size*size);
     nsec_t start, end;
     HTime_InitBase();
-
-    /* - Perform the DCT2 using the functions provided by OpenCV -----------
-     */
-
-    cv::Mat cvTestMatrix = cv::Mat(size, size, CV_32F, &mat);
-    cv::Mat cvOut = cv::Mat(size, size, CV_32F);
-
+    cv::Mat cvIn = cv::Mat(size, size, CV_64F, &in.front());
+    cv::Mat cvOut = cv::Mat(size, size, CV_64F);
     start = HTime_GetNsDelta(&ts);  // Begin timing
-    cv::dct(cvTestMatrix, cvOut);
+    cv::dct(cvIn, cvOut);
     end = HTime_GetNsDelta(&ts);  // End timing
-
-    // memcpy(&outMatrix, cvOut.data,
-    //        TEST_MATRIX_H * TEST_MATRIX_W * sizeof(float));
-
-    // printf("The DCT2 using OpenCV's cv::dct() took %f us. Result:\n\n",
-    //        (end - start) / (float)NSEC_PER_USEC);
-    // printMatrix2d((float*)&outMatrix, TEST_MATRIX_H, TEST_MATRIX_W);
-
-    /* - Perform the DCT2 using the functions provided by us! ----------- */
-
+    ret.assign(cvOut.begin<double>(), cvOut.end<double>());
+    out = ret;
+    //dbgPrintCvMat(cvOut);
     return (long double)(end - start);
 }
 
-void showTestWindow(bool* visible) {
+void OcvDctBenchWindow(bool* visible) {
     static long double elapsed = .0f;
     static int matrixSize = 8;
     static bool matrixLoaded = false;
     static bool matrixProcessed = false;
     static char csvFilePath[128] = "../docs/mat1_in.csv";
     static char fileOpenStatus[512] = "File not loaded yet.";
-    // FIXME convert to heap alloc
     static std::vector<double> inputMatrix;
     static std::vector<double> outputMatrix;
-    ImGui::SetNextWindowSize(ImVec2(500, 600), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(700, 500), ImGuiCond_Once);
     ImGui::Begin(OCV_DCT_TEST_WINDOW_TITLE, visible);
     ImGui::TextWrapped(
-        "Test OpenCV's cv::dct()");
+        "Benchmark OpenCV's cv::dct()");
     ImGui::Separator();
     if(ImGui::SliderInt("Matrix Size", &matrixSize, 8, 255)) {
 	matrixLoaded = false; // Invalidate state on slider change
+	matrixProcessed = false;
     };
     ImGui::InputText("CSV File Path", csvFilePath, IM_ARRAYSIZE(csvFilePath));
     if (ImGui::Button("Load CSV File")) {
 	matrixLoaded = false;
+	matrixProcessed = false;
 	inputMatrix = loadMatrixFromCsv(csvFilePath, matrixSize, matrixSize);
 	if (inputMatrix.size() == 1) {  // File read error
 	    snprintf((char*)&fileOpenStatus, 512,
@@ -88,7 +81,7 @@ void showTestWindow(bool* visible) {
 	             "Could not interpret the contents of the file as a matrix"
 	             " of such dimension(s).");
 	} else {
-	    snprintf((char*)&fileOpenStatus, 128, "File loaded successfully!");
+	    snprintf((char*)&fileOpenStatus, 512, "File loaded successfully!");
 	    matrixLoaded = true;
 	}
     }
@@ -103,15 +96,38 @@ void showTestWindow(bool* visible) {
 	ImGui::Text("No input data to show.");
     }
     ImGui::Separator();
-    if (ImGui::Button("Start Test") && matrixLoaded)
-	elapsed = performTestNs(inputMatrix, matrixSize);
+    if (ImGui::Button("Start Test") && matrixLoaded) {
+	elapsed = BenchOcvDctNs(inputMatrix, matrixSize, outputMatrix);
+	matrixProcessed = true;
+    }
     ImGui::SameLine();
     if (matrixLoaded) {
 	ImGui::TextWrapped("Last run took %Lf seconds (%Lf milliseconds).",
 	                   elapsed / NSEC_PER_SEC, elapsed / NSEC_PER_MSEC);
     } else {
-	ImGui::TextWrapped("No inputMatrix has been loaded.");
+	ImGui::TextWrapped("No matrix has been loaded.");
     }
+    // Output data section
+    ImGui::Separator();
+    if(matrixProcessed) {
+	ImGui::Text("Output data:");
+	printMatrix2dEng(outputMatrix, matrixSize, matrixSize);
+    } else {
+	ImGui::Text("No output data to show.");
+    }
+    // Button section
+    ImGui::Separator();
     if (ImGui::Button("Close")) *visible = false;
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+	elapsed = .0f;
+	matrixSize = 8;
+	matrixLoaded = false;
+	matrixProcessed = false;
+	snprintf((char*)&csvFilePath, 128,"../docs/mat1_in.csv");
+	snprintf((char*)&fileOpenStatus, 512, "File not loaded yet.");
+	inputMatrix.clear();
+	outputMatrix.clear();
+    }
     ImGui::End();
 }
