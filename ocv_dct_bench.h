@@ -21,7 +21,11 @@
     USA
 */
 
-#ifndef PROJ2_DCT2_H
-#define PROJ2_DCT2_H
+#ifndef PROJ2_OCV_DCT_BENCH_H
+#define PROJ2_OCV_DCT_BENCH_H
 
-#endif //PROJ2_DCT2_H
+#define OCV_DCT_TEST_WINDOW_TITLE "OpenCV DCT Benchmark"
+
+void showTestWindow(bool*);
+
+#endif  // PROJ2_OCV_DCT_BENCH_H

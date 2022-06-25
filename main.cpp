@@ -29,14 +29,16 @@
 #include "imgui.h"
 #include "imgui_impl_opengl2.h"
 #include "imgui_impl_sdl.h"
+#include "ocv_dct_bench.h"
 
-#include "dct_test.h"
+#define MAIN_WINDOW_TITLE "DCTToolbox v0.2"
+#define DCT_TOOLBOX_VERSION "0.2"
 
-int main(int, char**) {
+int main(int argc, char** argv) {
 
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
 	printf("Error: %s\n", SDL_GetError());
-	return -1;
+	exit(EXIT_FAILURE);
     }
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -48,7 +50,7 @@ int main(int, char**) {
         (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
                           SDL_WINDOW_ALLOW_HIGHDPI);
     SDL_Window* window = SDL_CreateWindow(
-        "ImageCompressor - MCS Proj2 a.a. 2021-22", SDL_WINDOWPOS_CENTERED,
+        MAIN_WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
@@ -70,8 +72,10 @@ int main(int, char**) {
     ImGui_ImplOpenGL2_Init();
 
     // Our state
-    bool visible_testWindow = false; // DCT-II Test Window Handle
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 bkgColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    bool showImgCompressorWindow = false;
+    bool showOcvDctTestWindow = false;
+    bool showMyDctTestWindow = false;
 
     // Main loop
     bool done = false;
@@ -98,30 +102,24 @@ int main(int, char**) {
 	// MainWindow
 	{
 
-	    ImGui::Begin("ImageCompressor Tools");
-	    ImGui::Checkbox(DCT_TEST_WINDOW_TITLE, &visible_testWindow);
+	    ImGui::SetNextWindowSize(ImVec2(350, 150), ImGuiCond_Once);
+	    ImGui::Begin("Tool Selector");
+	    ImGui::Checkbox("Image Compressor", &showImgCompressorWindow);
+	    ImGui::Checkbox(OCV_DCT_TEST_WINDOW_TITLE, &showOcvDctTestWindow);
+	    ImGui::Checkbox("Homegrown DCT Benchmark", &showMyDctTestWindow);
 
-	    /*
-	    ImGui::Checkbox("Demo Window",
-	                    &show_demo_window);  // Edit bools storing our
-	                                         // window open/close state
-	    ImGui::Checkbox("Another Window", &show_another_window);
-	     */
-		/*
-	    ImGui::SliderFloat(
-	        "float", &f, 0.0f,
-	        1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
-	    ImGui::ColorEdit3(
-	        "clear color",show_another_window
-	        (float*)&clear_color);  // Edit 3 floats representing a color
-	        */
 
-	    if(visible_testWindow) {
-		showTestWindow(&visible_testWindow);
+	    if(showOcvDctTestWindow) {
+		showTestWindow(&showOcvDctTestWindow);
 	    }
 
 	    ImGui::Separator();
-	    ImGui::Text("Built on ImGui %s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+	    ImGui::TextWrapped(
+	        "DCTToolbox v%s\n"
+	        "Copyright (C) 2022  Jacopo Maltagliati\n"
+	        "Copyright (C) 2022  Alessandro Albi\n"
+	        "Released under the GNU LGPL-v2.1.\n", DCT_TOOLBOX_VERSION);
+	    ImGui::Text("Built on ImGui v%s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
 	    ImGui::Text("Average frame times: %.3f ms/frame (%.1f FPS)",
 	                1000.0f / ImGui::GetIO().Framerate,
 	                ImGui::GetIO().Framerate);
@@ -131,9 +129,8 @@ int main(int, char**) {
 	// Rendering
 	ImGui::Render();
 	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-	glClearColor(clear_color.x * clear_color.w,
-	             clear_color.y * clear_color.w,
-	             clear_color.z * clear_color.w, clear_color.w);
+	glClearColor(bkgColor.x * bkgColor.w, bkgColor.y * bkgColor.w,
+	             bkgColor.z * bkgColor.w, bkgColor.w);
 	glClear(GL_COLOR_BUFFER_BIT);
 	// glUseProgram(0); // You may want this if using this code in an OpenGL
 	// 3+ context where shaders may be bound
@@ -150,5 +147,5 @@ int main(int, char**) {
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }

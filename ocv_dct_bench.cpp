@@ -21,66 +21,11 @@
     USA
 */
 
-#include "dct_test.h"
-
-#include <fstream>
+#include "dct_bench_common.h"
+#include "ocv_dct_bench.h"
 
 #include "h_time.h"
-#include "imgui.h"
 #include "opencv2/opencv.hpp"
-
-void printMatrix2dEng(std::vector<double> mat, int height, int width) {
-    if (ImGui::BeginTable("table2", width)) {
-	for (int i = 0; i < height; i++) {
-	    ImGui::TableNextRow();
-	    for (int j = 0; j < width; j++) {
-		ImGui::TableNextColumn();
-		ImGui::Text("% .2e\t", mat.at(j + (i * j)));
-	    }
-	}
-	ImGui::EndTable();
-    }
-    return;
-}
-
-void printMatrix2d(std::vector<double> mat, int height, int width) {
-    if(mat.size() < height * width)
-	return; // ??? AAAAAh non era static ;)
-    if (ImGui::BeginTable("table2", width)) {
-	for (int i = 0; i < height; i++) {
-	    //ImGui::TableNextRow();
-	    for (int j = 0; j < width; j++) {
-		ImGui::TableNextColumn();
-		ImGui::Text("%g", mat.at(j + (width * i)));
-	    }
-	}
-	ImGui::EndTable();
-    }
-    return;
-}
-
-
-std::vector<double> loadMatrixFromCsv(const std::string& csvPath, uint w,
-                                      uint h) {
-    std::ifstream csvData;
-    csvData.open(csvPath, std::ifstream::in);
-    if (csvData.bad()) return {.0f}; // FIXME wtf
-    std::string line;
-    std::vector<double> values;
-    uint rows = 0, cells = 0;
-    while (std::getline(csvData, line)) {
-	std::stringstream lineStream(line);
-	std::string cell;
-	while (std::getline(lineStream, cell, ',')) {
-	    values.push_back(std::stod(cell));
-	    ++cells;
-	}
-	++rows;
-    }
-    if (rows != h || cells / rows != w) return {.0f, .0f};
-    csvData.close();
-    return values;
-}
 
 long double performTestNs(std::vector<double> mat, int size) {
     /* - Initialize the Timebase -------------------------------------------
@@ -123,7 +68,7 @@ void showTestWindow(bool* visible) {
     static std::vector<double> inputMatrix;
     static std::vector<double> outputMatrix;
     ImGui::SetNextWindowSize(ImVec2(500, 600), ImGuiCond_Once);
-    ImGui::Begin(DCT_TEST_WINDOW_TITLE, visible);
+    ImGui::Begin(OCV_DCT_TEST_WINDOW_TITLE, visible);
     ImGui::TextWrapped(
         "Test OpenCV's cv::dct()");
     ImGui::Separator();
@@ -141,7 +86,7 @@ void showTestWindow(bool* visible) {
 	} else if (inputMatrix.size() == 2) {  // Mat. size error
 	    snprintf((char*)&fileOpenStatus, 512,
 	             "Could not interpret the contents of the file as a matrix"
-	             "of the given dimension(s).");
+	             " of such dimension(s).");
 	} else {
 	    snprintf((char*)&fileOpenStatus, 128, "File loaded successfully!");
 	    matrixLoaded = true;
