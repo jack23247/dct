@@ -1,0 +1,3 @@
+[submodule "deps/ImGui-CMake-Installer"]
+	path = deps/ImGui-CMake-Installer
+	url = https://github.com/jack23247/ImGui-CMake-Installer.git
