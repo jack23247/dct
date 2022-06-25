@@ -1,3 +1,6 @@
 [submodule "deps/ImGui-CMake-Installer"]
 	path = deps/ImGui-CMake-Installer
 	url = https://github.com/jack23247/ImGui-CMake-Installer.git
+[submodule "deps/rt-app"]
+	path = deps/rt-app
+	url = https://github.com/iralabdisco/rt-app
