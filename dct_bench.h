@@ -21,21 +21,37 @@
     USA
 */
 
-#ifndef PROJ2_DCT_BENCH_COMMON_H
-#define PROJ2_DCT_BENCH_COMMON_H
+#ifndef PROJ2_DCT_BENCH_H
+#define PROJ2_DCT_BENCH_H
 
 #include <fstream>
 #include <sstream>
 #include <vector>
 
+#include "h_time.h"
 #include "imgui.h"
+#include "opencv2/opencv.hpp"
 
-void printMatrix2dEng(std::vector<double>& mat, int height, int width) {
-    if(mat.size() < height * width)
-	return;
+#define DCT_BENCH_WINDOW_TITLE "DCT Benchmark"
+
+#define OCV_DCT_DEBUG 0
+
+#define DCT_IMPL_CV 0
+#define DCT_IMPL_MY 1
+
+#define ECSVBAD 0
+#define ECSVSZ 1
+
+#if OCV_DCT_DEBUG
+void dbgPrintCvMat(cv::Mat& mat) {
+    std::cout << "R (csv)     = " << std::endl << format(mat, cv::Formatter::FMT_CSV) << std::endl << std::endl;
+}
+#endif
+
+inline void printMatrix2dEng(std::vector<double>& mat, int height, int width) {
+    if (mat.size() < height * width) return;
     if (ImGui::BeginTable("table2", width)) {
 	for (int i = 0; i < height; i++) {
-	    //ImGui::TableNextRow();
 	    for (int j = 0; j < width; j++) {
 		ImGui::TableNextColumn();
 		ImGui::Text("%+.2e", mat.at(j + (width * i)));
@@ -43,15 +59,12 @@ void printMatrix2dEng(std::vector<double>& mat, int height, int width) {
 	}
 	ImGui::EndTable();
     }
-    return;
 }
 
-void printMatrix2d(std::vector<double>& mat, int height, int width) {
-    if(mat.size() < height * width)
-	return;
+inline void printMatrix2d(std::vector<double>& mat, int height, int width) {
+    if (mat.size() < height * width) return;
     if (ImGui::BeginTable("table2", width)) {
 	for (int i = 0; i < height; i++) {
-	    //ImGui::TableNextRow();
 	    for (int j = 0; j < width; j++) {
 		ImGui::TableNextColumn();
 		ImGui::Text("%g", mat.at(j + (width * i)));
@@ -59,29 +72,8 @@ void printMatrix2d(std::vector<double>& mat, int height, int width) {
 	}
 	ImGui::EndTable();
     }
-    return;
 }
 
-std::vector<double> loadMatrixFromCsv(const std::string& csvPath, uint w,
-                                      uint h) {
-    std::ifstream csvData;
-    csvData.open(csvPath, std::ifstream::in);
-    if (csvData.bad()) return {.0f}; // FIXME wtf
-    std::string line;
-    std::vector<double> values;
-    uint rows = 0, cells = 0;
-    while (std::getline(csvData, line)) {
-	std::stringstream lineStream(line);
-	std::string cell;
-	while (std::getline(lineStream, cell, ',')) {
-	    values.push_back(std::stod(cell));
-	    ++cells;
-	}
-	++rows;
-    }
-    if (rows != h || cells / rows != w) return {.0f, .0f};
-    csvData.close();
-    return values;
-}
+void DctBenchWindow(bool*);
 
-#endif  // PROJ2_DCT_BENCH_COMMON_H
+#endif  // PROJ2_DCT_BENCH_H

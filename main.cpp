@@ -26,16 +26,15 @@
 
 #include <cstdio>
 
+#include "dct_bench.h"
 #include "imgui.h"
 #include "imgui_impl_opengl2.h"
 #include "imgui_impl_sdl.h"
-#include "ocv_dct_bench.h"
 
 #define MAIN_WINDOW_TITLE "DCTToolbox v0.2"
 #define DCT_TOOLBOX_VERSION "0.2"
 
 int main(int argc, char** argv) {
-
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
 	printf("Error: %s\n", SDL_GetError());
 	exit(EXIT_FAILURE);
@@ -46,12 +45,9 @@ int main(int argc, char** argv) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_WindowFlags window_flags =
-        (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE |
-                          SDL_WINDOW_ALLOW_HIGHDPI);
-    SDL_Window* window = SDL_CreateWindow(
-        MAIN_WINDOW_TITLE, SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+    SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
+    SDL_Window* window =
+        SDL_CreateWindow(MAIN_WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
     SDL_GLContext gl_context = SDL_GL_CreateContext(window);
     SDL_GL_MakeCurrent(window, gl_context);
     SDL_GL_SetSwapInterval(1);  // Enable vsync
@@ -73,21 +69,19 @@ int main(int argc, char** argv) {
 
     // Our state
     ImVec4 bkgColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    // bool showToolboxWindow = true;
     bool showImgCompressorWindow = false;
-    bool showOcvDctBenchWindow = false;
-    bool showMyDctTestWindow = false;
+    bool showDctBenchWindow = false;
 
     // Main loop
     bool done = false;
     while (!done) {
-
 	// Process events
 	SDL_Event event;
 	while (SDL_PollEvent(&event)) {
 	    ImGui_ImplSDL2_ProcessEvent(&event);
 	    if (event.type == SDL_QUIT) done = true;
-	    if (event.type == SDL_WINDOWEVENT &&
-	        event.window.event == SDL_WINDOWEVENT_CLOSE &&
+	    if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE &&
 	        event.window.windowID == SDL_GetWindowID(window))
 		done = true;
 	}
@@ -101,16 +95,12 @@ int main(int argc, char** argv) {
 
 	// MainWindow
 	{
-
-	    ImGui::SetNextWindowSize(ImVec2(350, 200), ImGuiCond_Once);
-	    ImGui::Begin("Tool Selector");
+	    ImGui::Begin("Tool Selector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 	    ImGui::Checkbox("Image Compressor", &showImgCompressorWindow);
-	    ImGui::Checkbox(OCV_DCT_TEST_WINDOW_TITLE, &showOcvDctBenchWindow);
-	    ImGui::Checkbox("Homegrown DCT Benchmark", &showMyDctTestWindow);
+	    ImGui::Checkbox(DCT_BENCH_WINDOW_TITLE, &showDctBenchWindow);
 
-
-	    if(showOcvDctBenchWindow) {
-		OcvDctBenchWindow(&showOcvDctBenchWindow);
+	    if (showDctBenchWindow) {
+		DctBenchWindow(&showDctBenchWindow);
 	    }
 
 	    ImGui::Separator();
@@ -118,10 +108,10 @@ int main(int argc, char** argv) {
 	        "DCTToolbox v%s\n"
 	        "Copyright (C) 2022  Jacopo Maltagliati\n"
 	        "Copyright (C) 2022  Alessandro Albi\n"
-	        "Released under the GNU LGPL-v2.1.\n", DCT_TOOLBOX_VERSION);
+	        "Released under the GNU LGPL-v2.1.\n",
+	        DCT_TOOLBOX_VERSION);
 	    ImGui::Text("Built on ImGui v%s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-	    ImGui::Text("Average frame times: %.3f ms/frame (%.1f FPS)",
-	                1000.0f / ImGui::GetIO().Framerate,
+	    ImGui::Text("Average frame times: %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
 	                ImGui::GetIO().Framerate);
 	    ImGui::End();
 	}
@@ -129,8 +119,7 @@ int main(int argc, char** argv) {
 	// Rendering
 	ImGui::Render();
 	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-	glClearColor(bkgColor.x * bkgColor.w, bkgColor.y * bkgColor.w,
-	             bkgColor.z * bkgColor.w, bkgColor.w);
+	glClearColor(bkgColor.x * bkgColor.w, bkgColor.y * bkgColor.w, bkgColor.z * bkgColor.w, bkgColor.w);
 	glClear(GL_COLOR_BUFFER_BIT);
 	// glUseProgram(0); // You may want this if using this code in an OpenGL
 	// 3+ context where shaders may be bound

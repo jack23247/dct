@@ -3,8 +3,7 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/deps/ImGui-CMake-Installer" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/deps/ImGui-CMake-Installer.OLD" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/deps/ImGui-CMake-Installer.OLD/imgui" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/deps/ImGui-CMake-Installer/imgui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/rt-app" vcs="Git" />
   </component>
 </project>
