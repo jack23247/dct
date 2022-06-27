@@ -30,6 +30,7 @@
 
 #include "h_time.h"
 #include "imgui.h"
+#include "my_dct.h"
 #include "opencv2/opencv.hpp"
 
 #define DCT_BENCH_WINDOW_TITLE "DCT Benchmark"

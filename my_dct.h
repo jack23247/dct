@@ -24,6 +24,15 @@
 #ifndef PROJ2_MY_DCT_H
 #define PROJ2_MY_DCT_H
 
+#define MYDCT_TRANSPOSE_DEBUG 0
+#define MYDCT_DDCT2_DEBUG 0
 
+#include <cassert>
+#include <cmath>
+#include <cstdlib>
+#include <vector>
+
+std::vector<double> MyMDCT2(const std::vector<double>&);
+std::vector<double> MyDDCT2(const std::vector<double>&, uint);
 
 #endif  // PROJ2_MY_DCT_H

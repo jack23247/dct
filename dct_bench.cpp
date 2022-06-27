@@ -50,7 +50,7 @@ std::vector<double> LoadMatrixFromCsv(const std::string& csvPath, uint height, u
 
 long double BenchDctNs(std::vector<double>& in, int size, std::vector<double>& out, uint impl) {
     timespec_t ts;
-    std::vector<double> ret(size * size);
+    std::vector<double> temp(size * size);
     nsec_t start = 0, end = -1;
     HTime_InitBase();
     if (impl == DCT_IMPL_CV) {
@@ -59,14 +59,16 @@ long double BenchDctNs(std::vector<double>& in, int size, std::vector<double>& o
 	start = HTime_GetNsDelta(&ts);  // Begin timing
 	cv::dct(cvIn, cvOut);
 	end = HTime_GetNsDelta(&ts);  // End timing
-	ret.assign(cvOut.begin<double>(), cvOut.end<double>());
-	out = ret;
+	temp.assign(cvOut.begin<double>(), cvOut.end<double>());
 #if OCV_DCT_DEBUG
 	dbgPrintCvMat(cvOut);
 #endif
     } else if (impl == DCT_IMPL_MY) {
-	// dummy
+	start = HTime_GetNsDelta(&ts);  // Begin timing
+	temp = MyDDCT2(in, size);
+	end = HTime_GetNsDelta(&ts);  // End timing
     }
+    out = temp;
     return (long double)(end - start);
 }
 
@@ -117,8 +119,10 @@ void DctBenchWindowInteractiveDemoSection() {
 	    matrixProcessed = true;
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Start myDct()") && matrixLoaded)
-	    ;
+	if (ImGui::Button("Start myDct()") && matrixLoaded) {
+	    elapsed = BenchDctNs(inputMatrix, matrixSize, outputMatrix, DCT_IMPL_MY);
+	    matrixProcessed = true;
+	}
 	ImGui::SameLine();
 	if (matrixLoaded) {
 	    ImGui::TextWrapped("Last run took %Lf seconds (%Lf milliseconds).", elapsed / NSEC_PER_SEC, elapsed / NSEC_PER_MSEC);
