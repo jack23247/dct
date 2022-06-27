@@ -24,14 +24,9 @@
 #ifndef PROJ2_DCT_BENCH_H
 #define PROJ2_DCT_BENCH_H
 
-#include <fstream>
-#include <sstream>
 #include <vector>
 
-#include "h_time.h"
 #include "imgui.h"
-#include "my_dct.h"
-#include "opencv2/opencv.hpp"
 
 #define DCT_BENCH_WINDOW_TITLE "DCT Benchmark"
 
@@ -44,25 +39,12 @@
 #define ECSVSZ 1
 
 #if OCV_DCT_DEBUG
-void dbgPrintCvMat(cv::Mat& mat) {
+void DbgPrintCvMat(cv::Mat& mat) {
     std::cout << "R (csv)     = " << std::endl << format(mat, cv::Formatter::FMT_CSV) << std::endl << std::endl;
 }
 #endif
 
-inline void printMatrix2dEng(std::vector<double>& mat, int height, int width) {
-    if (mat.size() < height * width) return;
-    if (ImGui::BeginTable("table2", width)) {
-	for (int i = 0; i < height; i++) {
-	    for (int j = 0; j < width; j++) {
-		ImGui::TableNextColumn();
-		ImGui::Text("%+.2e", mat.at(j + (width * i)));
-	    }
-	}
-	ImGui::EndTable();
-    }
-}
-
-inline void printMatrix2d(std::vector<double>& mat, int height, int width) {
+inline void PrintMatrix2d(std::vector<double>& mat, int height, int width) {
     if (mat.size() < height * width) return;
     if (ImGui::BeginTable("table2", width)) {
 	for (int i = 0; i < height; i++) {
@@ -75,6 +57,18 @@ inline void printMatrix2d(std::vector<double>& mat, int height, int width) {
     }
 }
 
+inline void PrintMatrix2dEng(std::vector<double>& mat, int height, int width) {
+    if (mat.size() < height * width) return;
+    if (ImGui::BeginTable("table2", width)) {
+	for (int i = 0; i < height; i++) {
+	    for (int j = 0; j < width; j++) {
+		ImGui::TableNextColumn();
+		ImGui::Text("%+.2e", mat.at(j + (width * i)));
+	    }
+	}
+	ImGui::EndTable();
+    }
+}
 void DctBenchWindow(bool*);
 
 #endif  // PROJ2_DCT_BENCH_H

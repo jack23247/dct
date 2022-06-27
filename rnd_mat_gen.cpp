@@ -5,12 +5,13 @@
 #include "rnd_mat_gen.h"
 
 #include <fstream>
+#include <random>
 #include <string>
 #include <vector>
-#include <random>
 
-#include "imgui.h"
+#include "csv_import_export.h"
 #include "dct_bench.h"
+#include "imgui.h"
 
 std::random_device rd;
 std::mt19937 mt(rd());
@@ -26,33 +27,6 @@ std::vector<double> GenerateSquareMatrix(uint n) {
     return ret;
 }
 
-uint WriteMatrixToCsv(const std::string& csvPath, uint height, uint width) {
-    std::vector<double> ret;
-    std::ofstream csvData;
-
-    csvData.open(csvPath, std::ofstream::out);
-    if (csvData.bad()) return errno;
-    std::string line;
-    uint rows = 0, cells = 0;
-    /*
-    while (std::getline(csvData, line)) {
-	std::stringstream lineStream(line);
-	std::string cell;
-	while (std::getline(lineStream, cell, ',')) {
-	    ret.push_back(std::stod(cell));
-	    ++cells;
-	}
-	++rows;
-    }
-    csvData.close();
-    if (rows != height || cells / rows != width) {
-	ret.clear();
-	ret.push_back(.0f); // Size should be 1
-}
-     */
-    return 0;
-}
-
 void RndMatGenWindow(bool* visible) {
     static int matrixSize = 8;
     static bool matrixGenerated = false;
@@ -61,7 +35,7 @@ void RndMatGenWindow(bool* visible) {
     static std::vector<double> matrix;
     ImGui::SetNextWindowSize(ImVec2(600, 270), ImGuiCond_Once);
     ImGui::Begin(RND_MAT_GEN_WINDOW_TITLE, visible);
-    if (ImGui::SliderInt("Matrix Size", &matrixSize, 8, 255)) {
+    if (ImGui::SliderInt("Matrix Size", &matrixSize, 8, 256)) {
 	matrixGenerated = false;
     };
     if (ImGui::Button("Generate Matrix")) {
@@ -69,8 +43,8 @@ void RndMatGenWindow(bool* visible) {
 	matrixGenerated = true;
     }
     if (matrixGenerated) {
-	if(matrixSize <= 20)
-		printMatrix2d(matrix, matrixSize, matrixSize);
+	if (matrixSize <= 20)
+	    PrintMatrix2d(matrix, matrixSize, matrixSize);
 	else
 	    ImGui::Text("Can't fit the data on-screen!");
     } else {
@@ -78,9 +52,16 @@ void RndMatGenWindow(bool* visible) {
     }
     ImGui::Separator();
     ImGui::InputText("CSV File Path", csvFilePath, IM_ARRAYSIZE(csvFilePath));
-
     if (ImGui::Button("Write to CSV File")) {
-	;
+	if (matrixGenerated) {
+	    int condCode = CsvExportMatrix(csvFilePath, matrix, matrixSize, matrixSize);
+	    if (condCode != 0)
+		snprintf((char*)&fileOpenStatus, 512, "%s", strerror(condCode));
+	    else
+		snprintf((char*)&fileOpenStatus, 512, "File written successfully!");
+	} else {
+	    snprintf((char*)&fileOpenStatus, 512, "No data to write.");
+	}
     }
     ImGui::SameLine();
     ImGui::TextWrapped("%s", fileOpenStatus);
