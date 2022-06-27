@@ -30,6 +30,7 @@
 #include "imgui.h"
 #include "imgui_impl_opengl2.h"
 #include "imgui_impl_sdl.h"
+#include "rnd_mat_gen.h"
 
 #define MAIN_WINDOW_TITLE "DCTToolbox v0.2"
 #define DCT_TOOLBOX_VERSION "0.2"
@@ -72,6 +73,7 @@ int main(int argc, char** argv) {
     // bool showToolboxWindow = true;
     bool showImgCompressorWindow = false;
     bool showDctBenchWindow = false;
+    bool showRndMatGenWindow = false;
 
     // Main loop
     bool done = false;
@@ -98,9 +100,14 @@ int main(int argc, char** argv) {
 	    ImGui::Begin("Tool Selector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
 	    ImGui::Checkbox("Image Compressor", &showImgCompressorWindow);
 	    ImGui::Checkbox(DCT_BENCH_WINDOW_TITLE, &showDctBenchWindow);
+	    ImGui::Checkbox("Random Matrix Generator", &showRndMatGenWindow);
 
 	    if (showDctBenchWindow) {
 		DctBenchWindow(&showDctBenchWindow);
+	    }
+
+	    if (showRndMatGenWindow) {
+		RndMatGenWindow(&showRndMatGenWindow);
 	    }
 
 	    ImGui::Separator();

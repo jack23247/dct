@@ -26,6 +26,6 @@ message(STATUS
 		\t-- OpenGL: ${OPENGL_LIBRARIES}
 		\t-- ImGui: ${IMGUI_LIBS}")
 
-add_executable(proj2 main.cpp dct_bench.cpp dct_bench.h my_dct.cpp my_dct.h)
+add_executable(proj2 main.cpp dct_bench.cpp dct_bench.h my_dct.cpp my_dct.h rnd_mat_gen.cpp rnd_mat_gen.h)
 target_link_libraries(proj2 ${OpenCV_LIBS} ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${IMGUI_LIBS})
 include_directories(${OpenCV_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${IMGUI_INCLUDE_DIRS_LOCAL} ${H_TIME_DIR})

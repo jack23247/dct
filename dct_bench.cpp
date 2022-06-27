@@ -154,6 +154,7 @@ void DctBenchWindowInteractiveDemoSection() {
 
 void DctBenchWindowBenchmarkingSection() {
     // Benchmark section
+    //ImGui::Text("Loading %c", "|/-\\"[(int)(ImGui::GetTime() / 0.05f) & 3]);
     // TODO Geometric mean of 10 tests, repeated on 10 matrix sizes, output as CSV data
     if (ImGui::CollapsingHeader("Benchmarking")) {
 	ImGui::Separator();
@@ -162,7 +163,7 @@ void DctBenchWindowBenchmarkingSection() {
 }
 
 void DctBenchWindow(bool* visible) {
-    ImGui::SetNextWindowSize(ImVec2(700, 520), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(720, 520), ImGuiCond_Once);
     ImGui::Begin(DCT_BENCH_WINDOW_TITLE, visible);
     ImGui::TextWrapped("Demo and benchmark OpenCV's cv::dct() and MyDCT");
     DctBenchWindowInteractiveDemoSection();
