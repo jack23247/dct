@@ -35,8 +35,8 @@
 #define DCT_IMPL_CV 0
 #define DCT_IMPL_MY 1
 
-#define ECSVBAD 0
-#define ECSVSZ 1
+#define USE_AUTO 0
+#define USE_ENGINEERING 1
 
 #if OCV_DCT_DEBUG
 void DbgPrintCvMat(cv::Mat& mat) {
@@ -44,31 +44,20 @@ void DbgPrintCvMat(cv::Mat& mat) {
 }
 #endif
 
-inline void PrintMatrix2d(std::vector<double>& mat, int height, int width) {
-    if (mat.size() < height * width) return;
-    if (ImGui::BeginTable("table2", width)) {
-	for (int i = 0; i < height; i++) {
-	    for (int j = 0; j < width; j++) {
-		ImGui::TableNextColumn();
-		ImGui::Text("%g", mat.at(j + (width * i)));
-	    }
+inline void makeTable(const std::vector<double>& mat, unsigned mat_height, unsigned mat_width, bool mode) {
+    if (mat.size() < mat_height * mat_width) return; // MAYBE Throw an exception instead?
+    if (ImGui::BeginTable("table2", static_cast<int>(mat_width))) {
+	for(auto elem : mat) {
+	    ImGui::TableNextColumn();
+	    if(mode == USE_ENGINEERING)
+		ImGui::Text("%+.2e", elem);
+	    else // USE_AUTO
+	    	ImGui::Text("%g", elem);
 	}
 	ImGui::EndTable();
     }
 }
 
-inline void PrintMatrix2dEng(std::vector<double>& mat, int height, int width) {
-    if (mat.size() < height * width) return;
-    if (ImGui::BeginTable("table2", width)) {
-	for (int i = 0; i < height; i++) {
-	    for (int j = 0; j < width; j++) {
-		ImGui::TableNextColumn();
-		ImGui::Text("%+.2e", mat.at(j + (width * i)));
-	    }
-	}
-	ImGui::EndTable();
-    }
-}
-void DctBenchWindow(bool*);
+void dctBenchWindow(bool*);
 
 #endif  // PROJ2_DCT_BENCH_H

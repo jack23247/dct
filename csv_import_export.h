@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-std::vector<double> CsvImportMatrix(const std::string& path, uint width, uint height);
-int CsvExportMatrix(const std::string& path, const std::vector<double>& matrix, uint width, uint height);
+std::vector<double> csvImportMatrix(const std::string&, unsigned, unsigned);
+void csvExportMatrix(const std::string&, const std::vector<double>&, unsigned, unsigned);
 
 #endif  // PROJ2_CSV_IMPORT_EXPORT_H

@@ -28,7 +28,14 @@
  */
 
 #include "my_dct.h"
+
+#if MYDCT_TRANSPOSE_DEBUG
 #include <cstdio>
+#endif
+
+#if MYDCT_DDCT2_DEBUG
+#include <cassert>
+#endif
 
 /**
  * Computes the coefficients for the transform. The DC (Direct Coefficient) is the average value of the sample sequence and is
@@ -39,7 +46,7 @@
  * @param N The input vector's width.
  * @return The AC or DC.
  */
-inline double MyDCTCoeff(uint u, uint N) {
+inline double MyDCTCoeff(unsigned u, unsigned N) {
     if (u == 0) {
 	return (sqrt(1 / (double)N));
     } else {
@@ -54,9 +61,9 @@ inline double MyDCTCoeff(uint u, uint N) {
  * @param n The input's width.
  * @return The DCT sum for the current input.
  */
-inline double MyDCTSum(const std::vector<double>& in, uint u, uint n) {
+inline double MyDCTSum(const std::vector<double>& in, unsigned u, unsigned n) {
     double sum = .0f;
-    for (uint x = 0; x < n; x++) {
+    for (unsigned x = 0; x < n; x++) {
 	sum += in.at(x) * cos((M_PI * (2 * x + 1) * u) / (2 * n));
     }
     return sum;
@@ -69,9 +76,9 @@ inline double MyDCTSum(const std::vector<double>& in, uint u, uint n) {
  * @return A vector containing the DCT of the input.
  */
 std::vector<double> MyMDCT2(const std::vector<double>& in) {
-    uint N = in.size();
+    unsigned N = in.size();
     std::vector<double> out(N);
-    for (uint u = 0; u < N; u++) {
+    for (unsigned u = 0; u < N; u++) {
 	out.at(u) = MyDCTCoeff(u, N) * MyDCTSum(in, u, N);
     }
     return out;
@@ -83,23 +90,23 @@ std::vector<double> MyMDCT2(const std::vector<double>& in) {
  * @param n The width of the matrix.
  * @return The transposed of the input.
  */
-std::vector<double> MyDCTTranspose(const std::vector<double>& in, uint n) {
+std::vector<double> MyDCTTranspose(const std::vector<double>& in, unsigned n) {
     std::vector<double> out(n*n);
-    for (uint r = 0; r < n; r++) {      // u < height
-	for (uint c = 0; c < n; c++) {  // v < width
+    for (unsigned r = 0; r < n; r++) {      // u < height
+	for (unsigned c = 0; c < n; c++) {  // v < width
 	    out.at(c + (n * r)) = in.at(r + (n * c));
 	}
     }
 #if MYDCT_TRANSPOSE_DEBUG
-    for (uint r = 0; r < n; r++) {      // u < height
-	for (uint c = 0; c < n; c++) {  // v < width
+    for (unsigned r = 0; r < n; r++) {      // u < height
+	for (unsigned c = 0; c < n; c++) {  // v < width
 	    printf("%g\t", in.at(c + (n * r)));
 	}
 	puts("");
     }
     puts("");
-    for (uint r = 0; r < n; r++) {      // u < height
-	for (uint c = 0; c < n; c++) {  // v < width
+    for (unsigned r = 0; r < n; r++) {      // u < height
+	for (unsigned c = 0; c < n; c++) {  // v < width
 	    printf("%g\t", out.at(c + (n * r)));
 	}
 	puts("");
@@ -114,9 +121,9 @@ std::vector<double> MyDCTTranspose(const std::vector<double>& in, uint n) {
  * @param n The width of the matrix.
  * @return The matrix containing the single-pass DCT transform of the input.
  */
-inline std::vector<double> MyDDCT2Pass(const std::vector<double>& in, uint n) {
+inline std::vector<double> MyDDCT2Pass(const std::vector<double>& in, unsigned n) {
     std::vector<double> temp(n), out;
-    for (uint u = 0; u < n; u++) { // u < height
+    for (unsigned u = 0; u < n; u++) { // u < height
 	temp = {in.begin()+(n*u), in.begin()+n+(n*u)};
 	temp = MyMDCT2(temp);
 	out.insert(out.end(), temp.begin(), temp.end());
@@ -132,10 +139,10 @@ inline std::vector<double> MyDDCT2Pass(const std::vector<double>& in, uint n) {
  * @param n The width (and height, since it's square) of the matrix.
  * @return A vector containing the DCT of the input (a n*n matrix).
  */
-std::vector<double> MyDDCT2(const std::vector<double>& in, uint n) {
-    // assuming in is a matrix, ensure the size is correct
-    uint N = n * n;  // we only support square matrices, thus width = height
+std::vector<double> MyDDCT2(const std::vector<double>& in, unsigned n) {
 #if MYDCT_DDCT2_DEBUG
+    // assuming in is a matrix, ensure the size is correct
+    unsigned N = n * n;  // we only support square matrices, thus width = height
     assert(in.size() == N);
 #endif
     std::vector<double> step, out;

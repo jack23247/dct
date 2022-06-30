@@ -8,41 +8,43 @@
 #include <iostream>
 #include <sstream>
 
-std::vector<double> CsvImportMatrix(const std::string& path, uint width, uint height) {
-    // TODO Hack -> Exceptions
+std::vector<double> csvImportMatrix(const std::string& path, unsigned mat_width, unsigned mat_height) {
+    std::ifstream file_ascii;
+    file_ascii.open(path, std::ifstream::in);
+    if (file_ascii.bad()) throw std::runtime_error("An I/O error occurred while trying to open the file for reading.");
     std::vector<double> ret;
-    std::ifstream ifstream;
-    ifstream.open(path, std::ifstream::in);
-    if (ifstream.bad()) return ret;  // HACK Size should be 0
     std::string line;
-    uint rows = 0, cells = 0;
-    while (std::getline(ifstream, line)) {
-	std::stringstream lineStream(line);
+    unsigned cells = 0, rets = 0;
+    while (std::getline(file_ascii, line)) {
+	std::stringstream buf(line);
 	std::string cell;
-	while (std::getline(lineStream, cell, ',')) {
+	while (std::getline(buf, cell, ',')) {
 	    ret.push_back(std::stod(cell));
-	    ++cells;
+	    cells++;
 	}
-	++rows;
+	rets++;
     }
-    ifstream.close();
-    if (rows != width || cells / rows != height) {
-	ret.clear();
-	ret.push_back(.0f);  // HACK Size should be 1
-    }
+    file_ascii.close();
+    if (cells != mat_width * mat_height || rets != mat_height)
+	throw std::runtime_error("Cannot intepret the contents of the file as a matrix of the given size.");
     return ret;
 }
 
-int CsvExportMatrix(const std::string& path, const std::vector<double>& matrix, uint width, uint height) {
-    // MAYBE Throw an exception instead of returning errno C-style?
-    std::ofstream ofstream;
-    ofstream.open(path, std::ofstream::out);
-    if (ofstream.bad()) return errno;
+void csvExportMatrix(const std::string& csv_file_path, const std::vector<double>& mat, unsigned mat_width, unsigned mat_height) {
+    if (mat.size() != mat_width * mat_height)
+	throw std::runtime_error("Can't interpret the contents of the vector as a mat of the given size.");
+    std::ofstream file_ascii;
+    file_ascii.open(csv_file_path, std::ofstream::out);
+    if (file_ascii.bad()) throw std::runtime_error("An I/O error occurred while trying to open the file for writing.");
     std::string line;
-    for (uint r = 0; r < width; r++) {
-	for (uint c = 0; c < height; c++) ofstream << matrix.at(c + (height * r)) << ", ";
-	ofstream << std::endl;
+    unsigned cols_left = mat_width;
+    for (auto elem : mat) {
+	file_ascii << elem << ", ";
+	cols_left--;
+	if (cols_left == 0) {
+	    file_ascii << std::endl;
+	    cols_left = mat_width;
+	}
     }
-    ofstream.close();
-    return 0;
+    file_ascii.close();
 }

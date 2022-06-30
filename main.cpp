@@ -103,11 +103,11 @@ int main(int argc, char** argv) {
 	    ImGui::Checkbox("Random Matrix Generator", &showRndMatGenWindow);
 
 	    if (showDctBenchWindow) {
-		DctBenchWindow(&showDctBenchWindow);
+		dctBenchWindow(&showDctBenchWindow);
 	    }
 
 	    if (showRndMatGenWindow) {
-		RndMatGenWindow(&showRndMatGenWindow);
+		rndMatGenWindow(&showRndMatGenWindow);
 	    }
 
 	    ImGui::Separator();
