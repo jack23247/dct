@@ -1,6 +1,8 @@
 #!/bin/bash
 # rt_app (for h_time.h)
 git clone --recursive https://github.com/iralabdisco/rt-app
+# stb (for stb_image.h)
+git clone --recursive https://github.com/nothings/stb
 # ImGui-CMake-Installer (to use ImGui with CMake)
 git clone --recursive https://github.com/jack23247/ImGui-CMake-Installer.git
 cd ImGui-CMake-Installer

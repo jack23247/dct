@@ -11,10 +11,12 @@ set(CMAKE_LIBRARY_PATH deps/ImGui-CMake-Installer/build/dist/lib)
 find_library(IMGUI_LIBS NAMES imgui libimgui libimgui.a REQUIRED NO_CACHE)
 set(IMGUI_INCLUDE_DIRS_LOCAL deps/ImGui-CMake-Installer/build/dist/include)
 set(H_TIME_DIR deps/rt-app/src)
+set(STB_IMAGE_DIR deps/stb)
 
 message(STATUS
 		"Includes:
 		\t-- h_time.h: ${H_TIME_DIR}
+		\t-- stb_image.h: ${STB_IMAGE_DIR}
 		\t-- OpenCV: ${OpenCV_INCLUDE_DIRS}
 		\t-- SDL2: ${SDL2_INCLUDE_DIRS}
 		\t-- OpenGL: ${OPENGL_INCLUDE_DIR}
@@ -26,6 +28,6 @@ message(STATUS
 		\t-- OpenGL: ${OPENGL_LIBRARIES}
 		\t-- ImGui: ${IMGUI_LIBS}")
 
-add_executable(proj2 main.cpp dct_bench.cpp dct_bench.h my_dct.cpp my_dct.h rnd_mat_gen.cpp rnd_mat_gen.h csv_import_export.cpp csv_import_export.h)
+add_executable(proj2 main.cpp dct_bench.cpp dct_bench.h my_dct.cpp my_dct.h rnd_mat_gen.cpp rnd_mat_gen.h csv_import_export.cpp csv_import_export.h img_compressor.cpp img_compressor.h)
 target_link_libraries(proj2 ${OpenCV_LIBS} ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${IMGUI_LIBS})
-include_directories(${OpenCV_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${IMGUI_INCLUDE_DIRS_LOCAL} ${H_TIME_DIR})
+include_directories(${OpenCV_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${IMGUI_INCLUDE_DIRS_LOCAL} ${H_TIME_DIR} ${STB_IMAGE_DIR})

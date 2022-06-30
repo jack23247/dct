@@ -4,3 +4,6 @@
 [submodule "deps/rt-app"]
 	path = deps/rt-app
 	url = https://github.com/iralabdisco/rt-app
+[submodule "deps/stb"]
+	path = deps/stb
+	url = https://github.com/nothings/stb
