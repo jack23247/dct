@@ -65,13 +65,14 @@ void dctBenchWindowInteractiveDemoSection() {
     static int mat_width = 8;
     static bool mat_loaded = false;
     static bool mat_processed = false;
-    static char csv_file_path[128] = "../docs/mat1_in.csv";
+    static char csv_file_path[128] = "./out.csv";
     static char io_status_msg[512] = "File not loaded yet.";
     static std::vector<double> mat_in;
     static std::vector<double> mat_out;
     if (ImGui::CollapsingHeader("Interactive Demo")) {
 	ImGui::Separator();
 	if (ImGui::SliderInt("Matrix Width", &mat_width, 8, 256)) {
+	    // TODO Allow non-square matrices
 	    // Invalidate state on slider change
 	    mat_loaded = false;
 	    mat_processed = false;
@@ -93,7 +94,11 @@ void dctBenchWindowInteractiveDemoSection() {
 	if (mat_loaded) {
 	    ImGui::Separator();
 	    ImGui::Text("Input data:");
-	    makeTable(mat_in, mat_width, mat_width, USE_AUTO);
+	    try {
+		makeTable(mat_in, mat_width, mat_width, USE_AUTO);
+	    } catch (std::runtime_error& e) {
+		ImGui::Text("%s", e.what());
+	    }
 	} else {
 	    ImGui::Separator();
 	    ImGui::Text("No input data to show.");
@@ -119,7 +124,11 @@ void dctBenchWindowInteractiveDemoSection() {
 	ImGui::Separator();
 	if (mat_processed) {
 	    ImGui::Text("Output data:");
-	    makeTable(mat_out, mat_width, mat_width, USE_ENGINEERING);
+	    try {
+		makeTable(mat_out, mat_width, mat_width, USE_ENGINEERING);
+	    } catch (std::runtime_error& e) {
+		ImGui::Text("%s", e.what());
+	    }
 	} else {
 	    ImGui::Text("No output data to show.");
 	}
@@ -146,7 +155,7 @@ void dctBenchWindowBenchmarkingSection() {
     static std::vector<double> cv_results_ms, my_results_ms;
     static int max_mat_width_exp = 8;
     if (ImGui::CollapsingHeader("Benchmarking")) {
-	if (ImGui::SliderInt("Maximum Matrix Width (2^x)", &max_mat_width_exp, 4, 12)) done = false;
+	if (ImGui::SliderInt("Maximum Matrix Width (2^x)", &max_mat_width_exp, 4, 11)) done = false;
 	if (ImGui::Button("Start") && !done) {
 	    done = false;
 	    unsigned cur_width;
@@ -165,7 +174,7 @@ void dctBenchWindowBenchmarkingSection() {
 	ImGui::TextWrapped("The window will freeze for a moment while performing the benchmark.");
 	if(max_mat_width_exp >= 10) {
 	    ImGui::SameLine();
-	    ImGui::TextWrapped("WARNING: Benchmarking on matrix sizes up to 2^10 and above takes a very long time!");
+	    ImGui::TextWrapped("WARNING: Benchmarking with a maximum matrix width of 2^10 takes a long time!");
 	}
 	if (done) {
 	    ImGui::Separator();

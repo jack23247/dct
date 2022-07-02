@@ -26,10 +26,11 @@ void rndMatGenWindow(bool* visible) {
 	mat_ready = true;
     }
     if (mat_ready) {
-	if (mat_width <= 20)
+	try {
 	    makeTable(mat, mat_width, mat_width, USE_AUTO);
-	else
-	    ImGui::Text("Can't fit the data on-screen!");
+	} catch (std::runtime_error& e) {
+	    ImGui::Text("%s", e.what());
+	}
     } else {
 	ImGui::Text("No data to show.");
     }

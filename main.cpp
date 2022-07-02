@@ -35,8 +35,8 @@
 #include "img_compressor.h"
 #include "rnd_mat_gen.h"
 
-#define MAIN_WINDOW_TITLE "DCTToolbox v0.2"
-#define DCT_TOOLBOX_VERSION "0.2"
+#define MAIN_WINDOW_TITLE "DCTToolbox v0.41"
+#define DCT_TOOLBOX_VERSION "0.41"
 
 int main(int argc, char** argv) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
@@ -100,7 +100,8 @@ int main(int argc, char** argv) {
 
 	// MainWindow
 	{
-	    ImGui::Begin("Tool Selector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize);
+	    ImGui::SetNextWindowSize(ImVec2(320, 210));
+	    ImGui::Begin("Tool Selector", nullptr, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize); //| ImGuiWindowFlags_AlwaysAutoResize);
 	    ImGui::Checkbox("Image Compressor", &show_img_compressor_window);
 	    ImGui::Checkbox(DCT_BENCH_WINDOW_TITLE, &show_dct_bench_window);
 	    ImGui::Checkbox("Random Matrix Generator", &show_rnd_mat_gen_window);
@@ -125,7 +126,7 @@ int main(int argc, char** argv) {
 	        "Copyright (C) 2022  Alessandro Albi\n"
 	        "Released under the GNU LGPL-v2.1.\n",
 	        DCT_TOOLBOX_VERSION);
-	    if (ImGui::CollapsingHeader("Open source libraries")) {
+	    if (ImGui::CollapsingHeader("Open Source Libraries")) {
 		ImGui::TextWrapped(
 		    "Dear ImGui v1.88\n"
 		    "Copyright (c) 2014-2022 Omar Cornut\n"
@@ -142,9 +143,11 @@ int main(int argc, char** argv) {
 		    "Released in the Public Domain.\n");
 		ImGui::Separator();
 	    }
-	    ImGui::Text("Built on ImGui v%s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
-	    ImGui::Text("Average frame times: %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-	                ImGui::GetIO().Framerate);
+	    if (ImGui::CollapsingHeader("Debug Information")) {
+		ImGui::Text("Built on ImGui v%s (%d)", IMGUI_VERSION, IMGUI_VERSION_NUM);
+		ImGui::Text("Rendering: %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+		            ImGui::GetIO().Framerate);
+	    }
 	    ImGui::End();
 	}
 

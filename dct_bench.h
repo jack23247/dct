@@ -25,6 +25,7 @@
 #define PROJ2_DCT_BENCH_H
 
 #include <vector>
+#include <stdexcept>
 
 #include "imgui.h"
 
@@ -45,7 +46,10 @@ void DbgPrintCvMat(cv::Mat& mat) {
 #endif
 
 inline void makeTable(const std::vector<double>& mat, unsigned mat_height, unsigned mat_width, bool mode) {
-    if (mat.size() < mat_height * mat_width) return; // MAYBE Throw an exception instead?
+    if (mat.size() < mat_height * mat_width)
+	throw std::runtime_error("Can't interpret the contents of the vector as a matrix of the given size.");
+    if (mat_height > 64 || mat_width > 64)
+	throw std::runtime_error("Can't fit all the elements on screen!");
     if (ImGui::BeginTable("table2", static_cast<int>(mat_width))) {
 	for(auto elem : mat) {
 	    ImGui::TableNextColumn();
