@@ -23,7 +23,7 @@
 #include "opencv2/opencv.hpp"
 
 struct ChunkCoord {
-    unsigned x, id_x, y, id_y, chunks_per_side;
+    unsigned chunks_per_side, id_x, col, id_y, row;
 };
 
 ChunkCoord toChunkCoord(unsigned img_col, unsigned img_row, unsigned img_width, unsigned chunk_width) {
@@ -34,14 +34,14 @@ ChunkCoord toChunkCoord(unsigned img_col, unsigned img_row, unsigned img_width, 
 	chunk_begin += chunk_width;
 	chunk_id_x++;
     }
-    ret.x = img_col - chunk_width * chunk_id_x;
+    ret.col = img_col - chunk_width * chunk_id_x;
     ret.id_x = chunk_id_x;
     chunk_begin = 0;
     while(chunk_begin <= img_row) {
 	chunk_begin += chunk_width;
 	chunk_id_y++;
     }
-    ret.y = img_row - chunk_width * chunk_id_y;
+    ret.row = img_row - chunk_width * chunk_id_y;
     ret.id_y = chunk_id_y;
     ret.chunks_per_side = chunks_per_side;
     return ret;
@@ -107,16 +107,16 @@ class Image {
 	texture = 0;
     }
 
-    std::vector<double> extractChunk(unsigned chunk_width, unsigned cur_column, unsigned cur_row) const {
+    std::vector<double> extractChunk(unsigned chunk_width, unsigned chunk_id_y, unsigned chunk_id_x) const {
 	std::vector<double> ret;
 	int x, y;
-	int chunks_per_side = static_cast<int>(ceil(data.cols / (double)chunk_width));
+	//int chunks_per_side = static_cast<int>(ceil(data.cols / (double)chunk_width));
 	for(int row = 0; row < chunk_width; row++) {
+	    y = row + (chunk_width * chunk_id_y);
 	    for(int col = 0; col < chunk_width; col++) {
-		y = row + (chunk_width * cur_column);
-		x = col + (chunk_width * cur_row);
-		if(y <= data.rows && x <= data.cols)
-			ret.push_back(static_cast<double>(data.at<unsigned char>(y, x)));
+		x = col + (chunk_width * chunk_id_x);
+		if(y < data.rows && x < data.cols)
+		    ret.push_back(static_cast<double>(data.at<unsigned char>(y, x)));
 		else
 		    ret.push_back(.0f);
 	    }
@@ -127,10 +127,10 @@ class Image {
     void makeCompressedOf(const Image& from_img, int chunk_width, int cutoff) {
 	// Subdivide image in chunks
 	std::vector<std::vector<double>> chunks_in;
-	int chunks_per_side = static_cast<int>(ceil(from_img.getWidth() / (double)chunk_width));
+	int chunks_per_side = static_cast<int>(floor(from_img.getWidth() / (double)chunk_width));
 	for(int row = 0; row < chunks_per_side; row++) {
 	    for(int col = 0; col < chunks_per_side; col++) {
-		chunks_in.push_back(from_img.extractChunk(chunk_width, col, row));
+		chunks_in.push_back(from_img.extractChunk(chunk_width, row, col));
 	    }
 	}
 	int cur = 0;
@@ -140,11 +140,9 @@ class Image {
 	    cv::dct(chunk_data, temp);
 	    for (int row = 0; row < temp.rows; row++) {
 		for (int col = 0; col < temp.cols; col++) {
-		    if ((col + row) >= cutoff) temp.data[temp.step * row + col] = 0;
+		    if ((col + row) >= cutoff) temp.data[col + chunk_width * row] = .0f;
 		}
 	    }
-	    chunk_data.deallocate();
-	    chunk_data.reserve(chunk_width*chunk_width);
 	    cv::idct(temp, chunk_data);
 	    /*
 	    puts("\nBEGINNING OF CHUNK");
@@ -162,9 +160,21 @@ class Image {
 	for(int row = 0; row < from_img.getWidth(); row++) {
 	    for (int col = 0; col < from_img.getWidth(); col++) {
 		cur_chunk = toChunkCoord(col, row, from_img.getWidth(), chunk_width);
-		buf[col + data.cols * row] =
-		    static_cast<unsigned char>(chunks_in.at((cur_chunk.id_y + cur_chunk.chunks_per_side * cur_chunk.id_x))
-		                                   .at(cur_chunk.y + chunk_width * cur_chunk.x));
+		try {
+		    double tmp = round(chunks_in.at((cur_chunk.id_x + cur_chunk.chunks_per_side * cur_chunk.id_y))
+		                     .at(cur_chunk.col + chunk_width * cur_chunk.row));
+		    if(tmp < .0f) {
+			tmp = .0f;
+			printf("You spin my head right round right round: %g\n", tmp);
+		    } else if(tmp > 255.0f) {
+			tmp = 255.0f;
+			printf("You spin my head right round right round: %g\n", tmp);
+		    }
+		    buf[col + data.cols * row] = static_cast<unsigned char>(tmp);
+		} catch(std::exception& e) {
+		    printf("Caught %s. Trying to load outside of chunk range?\n", e.what());
+			buf[col + data.cols * row] = 128;
+		}
 	    }
 	}
 	std::memcpy(data.data, buf, data.cols*data.rows);
