@@ -38,7 +38,7 @@ long double benchDctNs(const std::vector<double>& in, unsigned in_width, std::ve
     int cv_mat_width = static_cast<int>(in_width);
     //auto mat_temp = std::unique_ptr<std::vector<double>>(new std::vector<double>(in_width * in_width));
     nsec_t ts_start = 0, ts_end = -1;
-    HTime_InitBase();
+    //HTime_InitBase(); // Moved to main() before the ImGui Loop;
     if (impl == DCT_IMPL_CV) {
 	mat_temp = in;
 	cv::Mat cv_mat_in = cv::Mat(cv_mat_width, cv_mat_width, CV_64F, &mat_temp.front());

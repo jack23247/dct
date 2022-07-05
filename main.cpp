@@ -30,13 +30,15 @@
 #include "imgui_impl_opengl2.h"
 #include "imgui_impl_sdl.h"
 
+#include "h_time.h"
+
 // DCTToolbox
 #include "dct_bench.h"
 #include "img_compressor.h"
 #include "rnd_mat_gen.h"
 
-#define MAIN_WINDOW_TITLE "DCTToolbox v0.41"
-#define DCT_TOOLBOX_VERSION "0.41"
+#define MAIN_WINDOW_TITLE "DCTToolbox v0.84"
+#define DCT_TOOLBOX_VERSION "0.84"
 
 int main(int argc, char** argv) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
@@ -77,6 +79,9 @@ int main(int argc, char** argv) {
     bool show_img_compressor_window = false;
     bool show_dct_bench_window = false;
     bool show_rnd_mat_gen_window = false;
+
+    // Initialize the timebase
+    HTime_InitBase();
 
     // Main loop
     bool done = false;
