@@ -29,7 +29,7 @@ struct ChunkCoord {
 ChunkCoord toChunkCoord(unsigned img_col, unsigned img_row, unsigned img_width, unsigned chunk_width) {
     ChunkCoord ret{};
     auto chunks_per_side = static_cast<unsigned>(floor(img_width / (double)chunk_width));
-    unsigned chunk_begin; int chunk_id_x = -1, chunk_id_y = -1;
+    unsigned chunk_begin = 0; int chunk_id_x = -1, chunk_id_y = -1;
     while(chunk_begin <= img_col) {
 	chunk_begin += chunk_width;
 	chunk_id_x++;
@@ -109,9 +109,16 @@ class Image {
 
     std::vector<double> extractChunk(unsigned chunk_width, unsigned cur_column, unsigned cur_row) const {
 	std::vector<double> ret;
+	int x, y;
+	int chunks_per_side = static_cast<int>(ceil(data.cols / (double)chunk_width));
 	for(int row = 0; row < chunk_width; row++) {
 	    for(int col = 0; col < chunk_width; col++) {
-		ret.push_back(static_cast<double>(data.at<unsigned char>(row + (chunk_width * cur_column), col + (chunk_width * cur_row))));
+		y = row + (chunk_width * cur_column);
+		x = col + (chunk_width * cur_row);
+		if(y <= data.rows && x <= data.cols)
+			ret.push_back(static_cast<double>(data.at<unsigned char>(y, x)));
+		else
+		    ret.push_back(.0f);
 	    }
 	}
 	return ret;
@@ -155,7 +162,7 @@ class Image {
 	for(int row = 0; row < from_img.getWidth(); row++) {
 	    for (int col = 0; col < from_img.getWidth(); col++) {
 		cur_chunk = toChunkCoord(col, row, from_img.getWidth(), chunk_width);
-		*(buf + (col + from_img.getWidth() * row)) =
+		buf[col + data.cols * row] =
 		    static_cast<unsigned char>(chunks_in.at((cur_chunk.id_y + cur_chunk.chunks_per_side * cur_chunk.id_x))
 		                                   .at(cur_chunk.y + chunk_width * cur_chunk.x));
 	    }
@@ -203,14 +210,14 @@ void imgCompressorWindow(bool* visible) {
 	ImGui::Separator();
 	ImGui::Text("Compression Parameters:");
 	ImGui::SliderInt("Chunk Size", &chunk_size, 2, 64);
-	ImGui::SliderInt("Frequency Cutoff", &cutoff, 0, 2*chunk_size-2);
-	if(ImGui::Button("Go!")) {
-	    if(chunk_size % 2 == 0) {
+	if(chunk_size % 2 != 0) {
+	    ImGui::Text("Please select an even chunk size!");
+	} else {
+	    ImGui::SliderInt("Frequency Cutoff", &cutoff, 0, 2 * chunk_size - 2);
+	    if (ImGui::Button("Go!")) {
 		to.reset();
 		to.makeCompressedOf(from, chunk_size, cutoff);
 		to_ready = true;
-	    } else {
-		ImGui::Text("Please select an even chunk size!");
 	    }
 	}
     }

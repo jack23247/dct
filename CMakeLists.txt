@@ -28,6 +28,7 @@ message(STATUS
 		\t-- OpenGL: ${OPENGL_LIBRARIES}
 		\t-- ImGui: ${IMGUI_LIBS}")
 
+add_compile_options(-fno-omit-frame-pointer -fsanitize=address)
 add_executable(proj2 main.cpp dct_bench.cpp dct_bench.h my_dct.cpp my_dct.h rnd_mat_gen.cpp rnd_mat_gen.h csv_import_export.cpp csv_import_export.h img_compressor.cpp img_compressor.h)
-target_link_libraries(proj2 ${OpenCV_LIBS} ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${IMGUI_LIBS})
+target_link_libraries(proj2 ${OpenCV_LIBS} ${SDL2_LIBRARIES} ${OPENGL_LIBRARIES} ${IMGUI_LIBS} -fsanitize=address)
 include_directories(${OpenCV_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${OPENGL_INCLUDE_DIR} ${IMGUI_INCLUDE_DIRS_LOCAL} ${H_TIME_DIR} ${STB_IMAGE_DIR})
