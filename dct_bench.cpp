@@ -224,6 +224,7 @@ void dctBenchWindowBenchmarkingSection() {
 	    ImGui::TextWrapped("WARNING: Benchmarking with a maximum matrix width of 2^10 takes a long time!");
 	}
 	if (done) {
+	    // FIXME Test on odd sized matrices, it probably won't work!
 	    ImGui::Separator();
 	    if (ImGui::BeginTable("table2", max_mat_width_exp - 1)) {
 		ImGui::TableNextColumn();
