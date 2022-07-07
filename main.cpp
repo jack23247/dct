@@ -37,8 +37,8 @@
 #include "img_compressor.h"
 #include "rnd_mat_gen.h"
 
-#define MAIN_WINDOW_TITLE "DCTToolbox v0.84"
-#define DCT_TOOLBOX_VERSION "0.84"
+#define MAIN_WINDOW_TITLE "DCTToolbox v1.01"
+#define DCT_TOOLBOX_VERSION "1.01"
 
 int main(int argc, char** argv) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) != 0) {
