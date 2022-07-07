@@ -235,11 +235,18 @@ void imgCompressorWindow(bool* visible) {
 	if (from_loaded) {
 	    static float from_zoom = 1.0f;
 	    static ImVec2 from_size = from.getSize();
-	    if (ImGui::SliderFloat("Magnification (x100)", &from_zoom, .1f, 2.0f), ImGuiSliderFlags_Logarithmic) {
+	    if (ImGui::SliderFloat("##zoom", &from_zoom, .1f, 5.0f), ImGuiSliderFlags_Logarithmic) {
 		from_size = from.getSize();
 		from_size.x *= from_zoom;
 		from_size.y *= from_zoom;
 	    }
+	    ImGui::SameLine();
+	    if(ImGui::Button("1x") && from_zoom != 1.0f) {
+		from_zoom = 1.0f;
+		from_size = to.getSize();
+	    }
+	    ImGui::SameLine();
+	    ImGui::Text("Magnification (x100)");
 	    ImGui::Image((void*)(intptr_t)from.getTexture(), from_size);
 	    ImGui::Separator();
 	    ImGui::Text("Filename: %s", from.getPath().c_str());
@@ -254,11 +261,18 @@ void imgCompressorWindow(bool* visible) {
 	if (to_ready) {
 	    static float to_zoom = 1.0f;
 	    static ImVec2 to_size = to.getSize();
-	    if (ImGui::SliderFloat("Magnification (x100)", &to_zoom, .1f, 2.0f), ImGuiSliderFlags_Logarithmic) {
+	    if (ImGui::SliderFloat("##zoom", &to_zoom, .1f, 5.0f), ImGuiSliderFlags_Logarithmic) {
 		to_size = to.getSize();
 		to_size.x *= to_zoom;
 		to_size.y *= to_zoom;
 	    }
+	    ImGui::SameLine();
+	    if(ImGui::Button("1x") && to_zoom != 1.0f) {
+		to_zoom	= 1.0f;
+		to_size = to.getSize();
+	    }
+	    ImGui::SameLine();
+	    ImGui::Text("Magnification (x100)");
 	    ImGui::Image((void*)(intptr_t)to.getTexture(), to_size);
 	    ImGui::Separator();
 	    ImGui::Text("Width (px): %d, Height (px): %d", to.getWidth(), to.getHeight());
