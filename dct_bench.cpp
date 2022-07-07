@@ -32,17 +32,16 @@
 #include "my_dct.h"
 #include "opencv2/opencv.hpp"
 
-long double benchDctNs(const std::vector<double>& in, unsigned in_width, std::vector<double>& out, uint impl) {
+long double benchDctNs(const std::vector<double>& in, int in_rows, int in_cols, std::vector<double>& out, uint impl) {
     timespec_t ts;
-    std::vector<double> mat_temp(in_width * in_width);
-    int cv_mat_width = static_cast<int>(in_width);
-    //auto mat_temp = std::unique_ptr<std::vector<double>>(new std::vector<double>(in_width * in_width));
+    std::vector<double> mat_temp(in_rows * in_cols);
+    //auto mat_temp = std::unique_ptr<std::vector<double>>(new std::vector<double>(in_cols * in_cols));
     nsec_t ts_start = 0, ts_end = -1;
     //HTime_InitBase(); // Moved to main() before the ImGui Loop;
     if (impl == DCT_IMPL_CV) {
 	mat_temp = in;
-	cv::Mat cv_mat_in = cv::Mat(cv_mat_width, cv_mat_width, CV_64F, &mat_temp.front());
-	cv::Mat cv_mat_out = cv::Mat(cv_mat_width, cv_mat_width, CV_64F);
+	cv::Mat cv_mat_in = cv::Mat(in_rows, in_cols, CV_64F, &mat_temp.front());
+	cv::Mat cv_mat_out = cv::Mat(in_rows, in_cols, CV_64F);
 	ts_start = HTime_GetNsDelta(&ts);  // Begin timing
 	cv::dct(cv_mat_in, cv_mat_out);
 	ts_end = HTime_GetNsDelta(&ts);  // End timing
@@ -53,7 +52,11 @@ long double benchDctNs(const std::vector<double>& in, unsigned in_width, std::ve
 #endif
     } else if (impl == DCT_IMPL_MY) {
 	ts_start = HTime_GetNsDelta(&ts);  // Begin timing
-	mat_temp = MyDDCT2(in, in_width);
+	mat_temp = MyDDCT2(in, in_rows);
+	ts_end = HTime_GetNsDelta(&ts);  // End timing
+    } else if (impl == DCT_IMPL_MY_MONO) {
+	ts_start = HTime_GetNsDelta(&ts);  // Begin timing
+	mat_temp = MyMDCT2(in);
 	ts_end = HTime_GetNsDelta(&ts);  // End timing
     }
     out = mat_temp;
@@ -62,40 +65,67 @@ long double benchDctNs(const std::vector<double>& in, unsigned in_width, std::ve
 
 void dctBenchWindowInteractiveDemoSection() {
     static long double elapsed = .0f;
-    static int mat_width = 8;
+    static bool mat_is_square = true;
+    static int mat_cols = 8;
+    static int mat_rows = mat_cols;
     static bool mat_loaded = false;
     static bool mat_processed = false;
     static char csv_file_path[128] = "./out.csv";
-    static char io_status_msg[512] = "File not loaded yet.";
+    static char res_file_path[128] = "./results.csv";
+    static char in_status_msg[512] = "File not loaded yet.";
+    static char out_status_msg[512] = "";
+    static char demo_status_msg[512] = "No matrix has been loaded.";
     static std::vector<double> mat_in;
     static std::vector<double> mat_out;
     if (ImGui::CollapsingHeader("Interactive Demo")) {
 	ImGui::Separator();
-	if (ImGui::SliderInt("Matrix Width", &mat_width, 8, 256)) {
-	    // TODO Allow non-square matrices
+	ImGui::Checkbox("Force Matrix Squareness", &mat_is_square);
+	if (!mat_is_square) {
+	    if (ImGui::SliderInt("Matrix Height", &mat_rows, 1, 256)) {
+		// Invalidate state on slider change
+		mat_loaded = false;
+		mat_processed = false;
+	    };
+	}
+	if (ImGui::SliderInt("Matrix Width", &mat_cols, 1, 256)) {
+	    if (mat_is_square) mat_rows = mat_cols;
 	    // Invalidate state on slider change
 	    mat_loaded = false;
 	    mat_processed = false;
 	};
 	ImGui::InputText("CSV File Path", csv_file_path, IM_ARRAYSIZE(csv_file_path));
-	if (ImGui::Button("Load CSV File")) {
+	if (ImGui::Button("Reset")) {
+	    elapsed = .0f;
+	    mat_cols = 8;
+	    mat_loaded = false;
+	    mat_processed = false;
+	    mat_in.clear();
+	    mat_out.clear();
+	    snprintf((char*)&csv_file_path, 128, "./out.csv");
+	    snprintf((char*)&res_file_path, 128, "./results.csv");
+	    snprintf((char*)&in_status_msg, 512, "File not loaded yet.");
+	    snprintf((char*)&demo_status_msg, 512, "No matrix has been loaded.");
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Load from CSV File")) {
 	    mat_loaded = false;
 	    mat_processed = false;
 	    try {
-		mat_in = csvImportMatrix(csv_file_path, mat_width, mat_width);
-		snprintf((char*)&io_status_msg, 512, "File loaded successfully!");
+		mat_in = csvImportMatrix(csv_file_path, mat_rows, mat_cols);
+		snprintf((char*)&in_status_msg, 512, "File loaded successfully!");
 		mat_loaded = true;
+		snprintf((char*)&demo_status_msg, 512, "Ready.");
 	    } catch (std::runtime_error& e) {
-		snprintf((char*)&io_status_msg, 512, "Unable to load file \"%s\". Reason: %s", csv_file_path, e.what());
+		snprintf((char*)&in_status_msg, 512, "Unable to load file \"%s\". Reason: %s", csv_file_path, e.what());
 	    }
 	}
 	ImGui::SameLine();
-	ImGui::TextWrapped("%s", io_status_msg);
+	ImGui::TextWrapped("%s", in_status_msg);
 	if (mat_loaded) {
 	    ImGui::Separator();
 	    ImGui::Text("Input data:");
 	    try {
-		makeTable(mat_in, mat_width, mat_width, USE_AUTO);
+		makeTable(mat_in, mat_rows, mat_cols, USE_AUTO);
 	    } catch (std::runtime_error& e) {
 		ImGui::Text("%s", e.what());
 	    }
@@ -104,46 +134,63 @@ void dctBenchWindowInteractiveDemoSection() {
 	    ImGui::Text("No input data to show.");
 	}
 	ImGui::Separator();
-	if (ImGui::Button("Start cv::dct()") && mat_loaded) {
-	    elapsed = benchDctNs(mat_in, mat_width, mat_out, DCT_IMPL_CV);
-	    mat_processed = true;
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Start MyDDCT2()") && mat_loaded) {
-	    elapsed = benchDctNs(mat_in, mat_width, mat_out, DCT_IMPL_MY);
-	    mat_processed = true;
-	}
-	// TODO Add "Start MyMDCT2()"
-	ImGui::SameLine();
 	if (mat_loaded) {
-	    ImGui::TextWrapped("Last run took %Lf seconds (%Lf milliseconds).", elapsed / NSEC_PER_SEC, elapsed / NSEC_PER_MSEC);
-	} else {
-	    ImGui::TextWrapped("No matrix has been loaded.");
+	    if (ImGui::Button("Start cv::dct()")) {
+		mat_processed = false;
+		elapsed = benchDctNs(mat_in, mat_rows, mat_cols, mat_out, DCT_IMPL_CV);
+		mat_processed = true;
+	    }
+	    ImGui::SameLine();
+	    if (ImGui::Button("Start MyDDCT2()")) {
+		mat_processed = false;
+		if (mat_rows != mat_cols) {
+		    snprintf((char*)&demo_status_msg, 512, "Can't perform the DDCT2 on a non-square matrix.");
+		} else {
+		    elapsed = benchDctNs(mat_in, mat_rows, mat_cols, mat_out, DCT_IMPL_MY);
+		    mat_processed = true;
+		}
+	    }
+	    ImGui::SameLine();
+	    if (ImGui::Button("Start MyMDCT2()")) {
+		mat_processed = false;
+		if (mat_rows != 1) {
+		    snprintf((char*)&demo_status_msg, 512, "Can't perform the MDCT2 on a matrix with more than one row.");
+		} else {
+		    elapsed = benchDctNs(mat_in, mat_rows, mat_cols, mat_out, DCT_IMPL_MY_MONO);
+		    mat_processed = true;
+		}
+	    }
 	}
+	if (mat_processed)
+	    snprintf((char*)&demo_status_msg, 512, "Last run took %Lf seconds (%Lf milliseconds).", elapsed / NSEC_PER_SEC,
+	             elapsed / NSEC_PER_MSEC);
+	ImGui::TextWrapped("%s", demo_status_msg);
 	// Output data section
 	ImGui::Separator();
 	if (mat_processed) {
 	    ImGui::Text("Output data:");
 	    try {
-		makeTable(mat_out, mat_width, mat_width, USE_ENGINEERING);
+		makeTable(mat_out, mat_rows, mat_cols, USE_ENGINEERING);
 	    } catch (std::runtime_error& e) {
 		ImGui::Text("%s", e.what());
 	    }
 	} else {
 	    ImGui::Text("No output data to show.");
 	}
-	// Button section
 	ImGui::Separator();
-	if (ImGui::Button("Reset")) {
-	    elapsed = .0f;
-	    mat_width = 8;
-	    mat_loaded = false;
-	    mat_processed = false;
-	    snprintf((char*)&csv_file_path, 128, "../docs/mat1_in.csv");
-	    snprintf((char*)&io_status_msg, 512, "File not loaded yet.");
-	    mat_in.clear();
-	    mat_out.clear();
-	}
+	if (mat_processed) {
+	    ImGui::InputText("Results File Path", res_file_path, IM_ARRAYSIZE(res_file_path));
+	    if (ImGui::Button("Save to CSV File")) {
+		try {
+		    csvExportMatrix(res_file_path, mat_out, mat_rows, mat_cols);
+		    snprintf((char*)&out_status_msg, 512, "File written successfully!");
+		} catch (std::runtime_error& e) {
+		    snprintf((char*)&out_status_msg, 512, "Unable to write file \"%s\". Reason: %s", res_file_path, e.what());
+		}
+	    }
+    	}
+	ImGui::SameLine();
+	ImGui::Text("%s", out_status_msg);
     }
 }
 
@@ -158,15 +205,15 @@ void dctBenchWindowBenchmarkingSection() {
 	if (ImGui::SliderInt("Maximum Matrix Width (2^x)", &max_mat_width_exp, 4, 11)) done = false;
 	if (ImGui::Button("Start") && !done) {
 	    done = false;
-	    unsigned cur_width;
+	    int cur_cols;
 	    std::vector<double> temp;
 	    cv_results_ms.clear();
 	    my_results_ms.clear();
 	    for(unsigned i = 3; i <= max_mat_width_exp; i++) {
-		cur_width = static_cast<unsigned>(pow(2,i));
-		temp = genRndMat(cur_width, cur_width); // MAYBE Use threads?
-		cv_results_ms.push_back(static_cast<double>(benchDctNs(temp, cur_width, discard, DCT_IMPL_CV) / NSEC_PER_MSEC));
-		my_results_ms.push_back(static_cast<double>(benchDctNs(temp, cur_width, discard, DCT_IMPL_MY) / NSEC_PER_MSEC));
+		cur_cols = static_cast<int>(pow(2,i));
+		temp = genRndMat(cur_cols, cur_cols); // MAYBE Use threads?
+		cv_results_ms.push_back(static_cast<double>(benchDctNs(temp, cur_cols, cur_cols, discard, DCT_IMPL_CV) / NSEC_PER_MSEC));
+		my_results_ms.push_back(static_cast<double>(benchDctNs(temp, cur_cols, cur_cols, discard, DCT_IMPL_MY) / NSEC_PER_MSEC));
 	    }
 	    done = true;
 	}
@@ -207,7 +254,7 @@ void dctBenchWindowBenchmarkingSection() {
 		    results_ms.reserve(cv_results_ms.size() + my_results_ms.size());
 		    results_ms.insert(results_ms.end(), cv_results_ms.begin(), cv_results_ms.end());
 		    results_ms.insert(results_ms.end(), my_results_ms.begin(), my_results_ms.end());
-		    csvExportMatrix(csv_file_path, results_ms, max_mat_width_exp - 2, 2);
+		    csvExportMatrix(csv_file_path, results_ms, 2, max_mat_width_exp - 2);
 		    snprintf((char*)&io_status_msg, 512, "File written successfully!");
 		} catch (std::runtime_error& e) {
 		    snprintf((char*)&io_status_msg, 512, "Unable to write file \"%s\". Reason: %s", csv_file_path, e.what());

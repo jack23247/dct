@@ -55,7 +55,7 @@ void rndMatGenWindow(bool* visible) {
     }
     ImGui::Separator();
     ImGui::InputText("CSV File Path", csv_file_path, IM_ARRAYSIZE(csv_file_path));
-    if (ImGui::Button("Write to CSV File")) {
+    if (ImGui::Button("Save to CSV File")) {
 	if (mat_ready) {
 	    try {
 		csvExportMatrix(csv_file_path, mat, mat_width, mat_width);

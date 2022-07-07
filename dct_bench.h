@@ -35,6 +35,7 @@
 
 #define DCT_IMPL_CV 0
 #define DCT_IMPL_MY 1
+#define DCT_IMPL_MY_MONO 2
 
 #define USE_AUTO 0
 #define USE_ENGINEERING 1

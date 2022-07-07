@@ -118,7 +118,7 @@ std::vector<double> MyDCTTranspose(const std::vector<double>& in, unsigned n) {
 /**
  * Computes a single pass of DCT transform on rows.
  * @param in The matrix to perform the transform on.
- * @param n The width of the matrix.
+ * @param n The height of the matrix (and its width, since it's square).
  * @return The matrix containing the single-pass DCT transform of the input.
  */
 inline std::vector<double> MyDDCT2Pass(const std::vector<double>& in, unsigned n) {
@@ -136,7 +136,7 @@ inline std::vector<double> MyDDCT2Pass(const std::vector<double>& in, unsigned n
  * steps. This property allows us to considerably reduce the processing time, confronted with the "dumb" version (not
  * implemented here).
  * @param in The input vector (a n*n matrix).
- * @param n The width (and height, since it's square) of the matrix.
+ * @param n The height of the matrix (and its width, since it's square).
  * @return A vector containing the DCT of the input (a n*n matrix).
  */
 std::vector<double> MyDDCT2(const std::vector<double>& in, unsigned n) {
