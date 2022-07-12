@@ -24,7 +24,6 @@
 #include "dct_bench.h"
 
 #include <fstream>
-#include <sstream>
 
 #include "rnd_mat_gen.h"
 #include "csv_import_export.h"
@@ -35,9 +34,7 @@
 long double benchDctNs(const std::vector<double>& in, int in_rows, int in_cols, std::vector<double>& out, uint impl) {
     timespec_t ts;
     std::vector<double> mat_temp(in_rows * in_cols);
-    //auto mat_temp = std::unique_ptr<std::vector<double>>(new std::vector<double>(in_cols * in_cols));
     nsec_t ts_start = 0, ts_end = -1;
-    //HTime_InitBase(); // Moved to main() before the ImGui Loop;
     if (impl == DCT_IMPL_CV) {
 	mat_temp = in;
 	cv::Mat cv_mat_in = cv::Mat(in_rows, in_cols, CV_64F, &mat_temp.front());
@@ -51,13 +48,13 @@ long double benchDctNs(const std::vector<double>& in, int in_rows, int in_cols, 
 	DbgPrintCvMat(cv_mat_out);
 #endif
     } else if (impl == DCT_IMPL_MY) {
-	ts_start = HTime_GetNsDelta(&ts);  // Begin timing
+	ts_start = HTime_GetNsDelta(&ts);
 	mat_temp = MyDDCT2(in, in_rows);
-	ts_end = HTime_GetNsDelta(&ts);  // End timing
+	ts_end = HTime_GetNsDelta(&ts);
     } else if (impl == DCT_IMPL_MY_MONO) {
-	ts_start = HTime_GetNsDelta(&ts);  // Begin timing
+	ts_start = HTime_GetNsDelta(&ts);
 	mat_temp = MyMDCT2(in);
-	ts_end = HTime_GetNsDelta(&ts);  // End timing
+	ts_end = HTime_GetNsDelta(&ts);
     }
     out = mat_temp;
     return static_cast<long double>(ts_end - ts_start);
@@ -200,17 +197,17 @@ void dctBenchWindowBenchmarkingSection() {
     static char csv_file_path[128] = "./bench.csv";
     static char io_status_msg[512] = "";
     static std::vector<double> cv_results_ms, my_results_ms;
-    static int max_mat_width_exp = 8;
+    static int steps = 8;
     if (ImGui::CollapsingHeader("Benchmarking")) {
-	if (ImGui::SliderInt("Maximum Matrix Width (2^x)", &max_mat_width_exp, 4, 11)) done = false;
+	if (ImGui::SliderInt("Steps", &steps, 4, 127)) done = false;
 	if (ImGui::Button("Start") && !done) {
 	    done = false;
 	    int cur_cols;
 	    std::vector<double> temp;
 	    cv_results_ms.clear();
 	    my_results_ms.clear();
-	    for(unsigned i = 3; i <= max_mat_width_exp; i++) {
-		cur_cols = static_cast<int>(pow(2,i));
+	    for(int i = 3; i <= steps; i++) {
+		cur_cols = 2*i;
 		temp = genRndMat(cur_cols, cur_cols); // MAYBE Use threads?
 		cv_results_ms.push_back(static_cast<double>(benchDctNs(temp, cur_cols, cur_cols, discard, DCT_IMPL_CV) / NSEC_PER_MSEC));
 		my_results_ms.push_back(static_cast<double>(benchDctNs(temp, cur_cols, cur_cols, discard, DCT_IMPL_MY) / NSEC_PER_MSEC));
@@ -218,36 +215,39 @@ void dctBenchWindowBenchmarkingSection() {
 	    done = true;
 	}
 	ImGui::SameLine();
-	ImGui::TextWrapped("The window will freeze for a moment while performing the benchmark.");
-	if(max_mat_width_exp >= 10) {
+	ImGui::TextWrapped("The window will freeze while performing the benchmark.");
+	if(steps > 100) {
 	    ImGui::SameLine();
-	    ImGui::TextWrapped("WARNING: Benchmarking with a maximum matrix width of 2^10 takes a long time!");
+	    ImGui::TextWrapped("WARNING: Benchmarking with more than 100 steps might take a while!");
 	}
 	if (done) {
-	    // FIXME Test on odd sized matrices, it probably won't work!
 	    ImGui::Separator();
-	    if (ImGui::BeginTable("table2", max_mat_width_exp - 1)) {
-		ImGui::TableNextColumn();
-		ImGui::Text("Size");
-		for (unsigned i = 3; i <= max_mat_width_exp; i++) {
+	    if (steps <= 64) {
+		if (ImGui::BeginTable("table2", steps - 1)) {
 		    ImGui::TableNextColumn();
-		    ImGui::Text("%d", static_cast<int>(pow(2, i)));
-		}
-		ImGui::TableNextColumn();
-		ImGui::Text("cv::dct()");
-		for (auto res : cv_results_ms) {
+		    ImGui::Text("Size");
+		    for (int i = 3; i <= steps; i++) {
+			ImGui::TableNextColumn();
+			ImGui::Text("%d", 2 * i);
+		    }
 		    ImGui::TableNextColumn();
-		    ImGui::Text("%4.3lf", res);
-		}
-		ImGui::TableNextColumn();
-		ImGui::Text("MyDDCT2()");
-		for (auto res : my_results_ms) {
+		    ImGui::Text("cv::dct()");
+		    for (auto res : cv_results_ms) {
+			ImGui::TableNextColumn();
+			ImGui::Text("%4.3lf", res);
+		    }
 		    ImGui::TableNextColumn();
-		    ImGui::Text("%4.3lf", res);
+		    ImGui::Text("MyDDCT2()");
+		    for (auto res : my_results_ms) {
+			ImGui::TableNextColumn();
+			ImGui::Text("%4.3lf", res);
+		    }
+		    ImGui::EndTable();
 		}
-		ImGui::EndTable();
+		ImGui::TextWrapped("Results are expressed in milliseconds (ms).");
+	    } else {
+		ImGui::TextWrapped("Cannot show results as they exceed the maximum allowable width (64) of ImGui::Table()!");
 	    }
-	    ImGui::TextWrapped("Results are expressed in milliseconds (ms).");
 	    ImGui::InputText("CSV File Path", csv_file_path, IM_ARRAYSIZE(csv_file_path));
 	    if (ImGui::Button("Export to CSV") && done) {
 		try {
@@ -255,7 +255,7 @@ void dctBenchWindowBenchmarkingSection() {
 		    results_ms.reserve(cv_results_ms.size() + my_results_ms.size());
 		    results_ms.insert(results_ms.end(), cv_results_ms.begin(), cv_results_ms.end());
 		    results_ms.insert(results_ms.end(), my_results_ms.begin(), my_results_ms.end());
-		    csvExportMatrix(csv_file_path, results_ms, 2, max_mat_width_exp - 2);
+		    csvExportMatrix(csv_file_path, results_ms, 2, steps - 2);
 		    snprintf((char*)&io_status_msg, 512, "File written successfully!");
 		} catch (std::runtime_error& e) {
 		    snprintf((char*)&io_status_msg, 512, "Unable to write file \"%s\". Reason: %s", csv_file_path, e.what());
