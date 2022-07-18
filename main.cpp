@@ -115,7 +115,6 @@ int main(int argc, char** argv) {
 		imgCompressorWindow(&show_img_compressor_window);
 	    }
 
-
 	    if (show_dct_bench_window) {
 		dctBenchWindow(&show_dct_bench_window);
 	    }

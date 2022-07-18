@@ -104,6 +104,7 @@ void dctBenchWindowInteractiveDemoSection() {
 	    snprintf((char*)&demo_status_msg, 512, "No matrix has been loaded.");
 	}
 	ImGui::SameLine();
+	// FIXME What if I load an odd-sized matrix?
 	if (ImGui::Button("Load from CSV File")) {
 	    mat_loaded = false;
 	    mat_processed = false;
